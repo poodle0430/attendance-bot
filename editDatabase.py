@@ -14,6 +14,8 @@ class CRUD(Database):
             self.cursor.execute(sql)
             self.db.commit()
         except Exception as e :
+            self.db.rollback()
+            print("Database read error:", e)
             print(" insert DB err ",e) 
     
     def readDB(self,schema,table,colum,condition):
@@ -21,10 +23,13 @@ class CRUD(Database):
             sql = " SELECT {colum} from {schema}.{table}".format(colum=colum,schema=schema,table=table)
         else:
             sql = " SELECT {colum} from {schema}.{table} WHERE {condition}".format(colum=colum,schema=schema,table=table,condition=condition)
+            
         try:
             self.cursor.execute(sql)
             result = self.cursor.fetchall()
         except Exception as e :
+            self.db.rollback()
+            print("Database read error:", e)
             result = (" read DB err",e)
         
         return result
@@ -36,6 +41,8 @@ class CRUD(Database):
             self.cursor.execute(sql)
             self.db.commit()
         except Exception as e :
+            self.db.rollback()
+            print("Database read error:", e)
             print(" update DB err",e)
 
     def deleteDB(self,schema,table,condition):
@@ -45,4 +52,6 @@ class CRUD(Database):
             self.cursor.execute(sql)
             self.db.commit()
         except Exception as e:
+            self.db.rollback()
+            print("Database read error:", e)
             print( "delete DB err", e)
