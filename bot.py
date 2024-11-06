@@ -43,7 +43,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 client = Client(command_prefix="!", intents=intents)
 
-GUILD_ID = discord.Object(id=1303084624054059100)
+GUILD_ID = discord.Object(id=id)
   
 @client.tree.command(name="거꾸로", description="뒤에 쓴 내용을 뒤집습니다.", guild=GUILD_ID)
 async def word(interaction: discord.Interaction, say: str):
