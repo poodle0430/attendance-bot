@@ -12,6 +12,7 @@ db = CRUD()
 
 token = Config.token
 id = Config.id
+weekdayindex = ['mon','tue','wed','thu','fri','sat','sun']
 
 class Client(commands.Bot):
     async def on_ready(self):
@@ -119,17 +120,33 @@ async def delUser(interaction: discord.Interaction):
         db.deleteDB(schema='public',table='attendance',condition=f'id = {user.id}')
         await interaction.response.send_message(f'{user.mention}님의 이름을 출석부에서 뺐습니다.')
     
-@client.tree.command(name='출석시간등록', description='설명', guild=GUILD_ID)    
-async def editTime(interaction: discord.Interaction, mon: str, tue: str, wed: str, thu: str, fri: str, sat: str, sun: str,):
+@client.tree.command(name='출석시간등록', description='출석시간을 설정하는 명령어입니다.', guild=GUILD_ID)    
+async def editTime(interaction: discord.Interaction, mon: str, tue: str, wed: str, thu: str, fri: str, sat: str, sun: str):
     user = interaction.user
     idlist = make_userlist('studentdb')
     
     if(user.id in idlist):
+        weekdayindex = weekdayindex
         db.deleteDB(schema='public',table='studentdb',condition=f'id = {user.id}')
         await interaction.response.send_message(f'{user.mention}님 아직 시간을 바꾸는 기능이 없어요 ㅠㅠ 대신 시간을 초기화 해드렸으니 다시 입력해주세요.')
     else:
         db.insertDB(schema='public',table='studentdb',colum=None,data=(user.id,user.name,mon,tue,wed,thu,fri,sat,sun))
         await interaction.response.send_message(f'{user.mention}님의 출석시간을 설정했어요.')
+
+@client.tree.command(name='출석시간확인',description='출석시간을 확인하는 명령어입니다.', guild=GUILD_ID)
+async def checkTime(interaction: discord.Interaction):
+    user = interaction.user
+    idlist = make_userlist('studentdb')
+    weekdayindex = weekdayindex
+    timetable = list()
+
+    if(user.id not in idlist):
+        await interaction.response.send_message(f'{user.mention}님 출석시간을 설정하지 않았어요. \'/출석시간\' 을 이용해보세요.')
+    else:
+        for i in range(7):
+            time = db.readDB(schema='public',table='studentdb',colum=f'{weekdayindex[i]}',condition=f'id = {user.id}')
+            timetable.append(time[0][0])
+        await interaction.response.send_message(f'{user.mention}님의 출석시간은 {timetable}입니다.')
 
 @client.tree.command(name='test',guild=GUILD_ID)
 async def test(interaction: discord.Interaction):
