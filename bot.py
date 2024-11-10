@@ -137,8 +137,7 @@ class TimeGroup(app_commands.Group):
         idlist = make_userlist('studentdb')
         
         if(user.id in idlist):
-            db.deleteDB(schema='public',table='studentdb',condition=f'id = {user.id}')
-            await interaction.response.send_message(f'{user.mention}님 아직 시간을 바꾸는 기능이 없어요 ㅠㅠ 대신 시간을 초기화 해드렸으니 다시 입력해주세요.')
+            await interaction.response.send_message(f'{user.mention}님 시간을 바꾸려면 \'/출석시간 변경\'을 이용해 보세요')
         else:
             db.insertDB(schema='public',table='studentdb',colum=None,data=(user.id,user.name,mon,tue,wed,thu,fri,sat,sun))
             await interaction.response.send_message(f'{user.mention}님의 시간을 설정했어요.')
@@ -150,12 +149,36 @@ class TimeGroup(app_commands.Group):
         timetable = list()
 
         if(user.id not in idlist):
-            await interaction.response.send_message(f'{user.mention}님 출석시간을 설정하지 않았어요. \'/출석시간\' 을 이용해보세요.')
+            await interaction.response.send_message(f'{user.mention}님 출석시간을 설정하지 않았어요. \'/출석시간 설정\'을 이용해보세요.')
         else:
             for i in range(7):
                 time = db.readDB(schema='public',table='studentdb',colum=f'{weekdayindex[i]}',condition=f'id = {user.id}')
                 timetable.append(time[0][0])
             await interaction.response.send_message(f'{user.mention}님의 출석시간은 {timetable}입니다.')
+            
+    @app_commands.command(name='삭제',description='출석시간을 삭제하는 명령어입니다.')
+    async def delTime(self, interaction: discord.Interaction):
+        user = interaction.user
+        idlist = make_userlist('studentdb')
+        
+        if(user.id in idlist):
+            db.deleteDB(schema='public',table='studentdb',condition=f'id = {user.id}')
+            await interaction.response.send_message(f'{user.mention}님의 출석시간을 삭제했습니다.')
+        else:
+            await interaction.response.send_message(f'{user.mention}님은 아직 출석시간을 설정하지 않았어요. \'/출석시간 설정\'을 이용해보세요')
+            
+    @app_commands.command(name='변경',description='출석시간을 변경하는 명령어 입니다.')
+    async def editTime(self, interaction: discord.Interaction, mon: str, tue: str, wed: str, thu: str, fri: str, sat: str, sun: str):
+        user = interaction.user
+        idlist = make_userlist('studentdb')
+        
+        if(user.id in idlist):
+            db.deleteDB(schema='public',table='studentdb',condition=f'id = {user.id}')
+            db.insertDB(schema='public',table='studentdb',colum=None,data=(user.id,user.name,mon,tue,wed,thu,fri,sat,sun))
+            await interaction.response.send_message(f'{user.mention}님의 출석시간을 바꿨어요!')
+        else:
+            await interaction.response.send_message(f'{user.mention}님은 아직 출석시간을 설정하지 않았어요. \'/출석시간 설정\'을 이용해보세요')
+            
 
 
 intents = discord.Intents.default()
