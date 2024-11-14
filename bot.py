@@ -70,7 +70,7 @@ class HelloGroup(app_commands.Group):
     async def goodbye(self, interaction: discord.Interaction):
         await interaction.response.send_message("안녕히 가세요!")
 
-class UserEditGroup(app_commands.Group):
+class UserEditGroup(app_commands.Group): # /유저
     @app_commands.command(name='추가', description='출석부에 내 이름을 적습니다. 이미 출석부에 이름이 있다면 /출석체크를 이용해주세요.')
     async def newUser(self, interaction: discord.Interaction):
         user = interaction.user    
@@ -94,7 +94,7 @@ class UserEditGroup(app_commands.Group):
             await interaction.response.send_message(f'{user.mention}님의 이름을 출석부에서 뺐습니다.')
 
 
-class AttandGroup(app_commands.Group):
+class AttandGroup(app_commands.Group): # /출석
     @app_commands.command(name="체크", description="출석체크용 명령어입니다.")
     async def attend(self, interaction: discord.Interaction):
         user = interaction.user
@@ -138,12 +138,19 @@ class AttandGroup(app_commands.Group):
         for i in range(7):
             date = (datatime - timedelta(days=i)).strftime('%Y-%m-%d')
             attendedday = db.readDB(schema='public',table='attendance',colum='attdate',condition=f'id = {user.id} AND attdate = \'{date}\'')
-            if(attendedday == date):
-                attendeddaylist.append(attendedday[0][0])
-            
-        await interaction.response.send_message(attendeddaylist[::-1])
+            print(date)
 
-class TimeGroup(app_commands.Group):
+            try:
+                attendeddaylist.append(attendedday[0][0])
+            except IndexError:
+                pass
+
+        attendeddaylist = attendeddaylist[::-1]
+        print(attendeddaylist)
+
+        await interaction.response.send_message(f'{attendeddaylist}')
+
+class TimeGroup(app_commands.Group): # /출석시간
     @app_commands.command(name='등록', description='출석시간을 설정하는 명령어입니다.')    
     async def editTime(self, interaction: discord.Interaction, mon: str, tue: str, wed: str, thu: str, fri: str, sat: str, sun: str):
         user = interaction.user
