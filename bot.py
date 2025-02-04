@@ -36,14 +36,14 @@ GUILD_ID = discord.Object(id=id)
 class Client(commands.Bot):
     async def on_ready(self):
         try:
-            self.tree.add_command(HelloGroup(name="greetings", description="인사 관련 명령어 그룹"), guild=GUILD_ID)
+            self.tree.add_command(HelloGroup(name="greetings", description="인사 관련 명령어 그룹"), guild=GUILD_ID) # 그룹으로 묶어서 한번에 로딩
             self.tree.add_command(UserEditGroup(name="유저", description="유저 정보 관련 명령어 그룹"), guild=GUILD_ID)
             self.tree.add_command(AttandGroup(name="출석", description="출석 관련 명령어 그룹"), guild=GUILD_ID)
             self.tree.add_command(TimeGroup(name="출석시간", description="출석시간 관련 명령어 그룹"), guild=GUILD_ID)
             synced = await self.tree.sync(guild=GUILD_ID)
             print(f'Synced {len(synced)} commands to guild {GUILD_ID.id}')
             
-        except Exception as e:
+        except Exception as e: # 예외처리
             print(f'Error syncing commands: {e}')
 
         commands = await self.tree.fetch_commands(guild=GUILD_ID)
@@ -63,7 +63,7 @@ class Client(commands.Bot):
 class HelloGroup(app_commands.Group):
     @app_commands.command(name="hello",description="안녕")
     async def hello(self, interaction: discord.Interaction):
-        await interaction.response.send_message("안녕하세요!")
+        await interaction.response.send_message("안녕하세요!") # 메세지를 보내는 형식
 
     @app_commands.command(name="goodbye",description="안녕")
     async def goodbye(self, interaction: discord.Interaction):
