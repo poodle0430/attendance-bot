@@ -1,5 +1,6 @@
 import discord
 import pytz
+from datetime import datetime, timedelta
 from config import Config
 from decimal import Decimal
 from discord.ext import commands
@@ -69,7 +70,7 @@ class HelloGroup(app_commands.Group):
     async def goodbye(self, interaction: discord.Interaction):
         await interaction.response.send_message("안녕히 가세요!")
 
-class UserEditGroup(app_commands.Group):
+class UserEditGroup(app_commands.Group): # /유저
     @app_commands.command(name='추가', description='출석부에 내 이름을 적습니다. 이미 출석부에 이름이 있다면 /출석체크를 이용해주세요.')
     async def newUser(self, interaction: discord.Interaction):
         user = interaction.user    
@@ -93,44 +94,63 @@ class UserEditGroup(app_commands.Group):
             await interaction.response.send_message(f'{user.mention}님의 이름을 출석부에서 뺐습니다.')
 
 
-class AttandGroup(app_commands.Group):
+class AttandGroup(app_commands.Group): # /출석
     @app_commands.command(name="체크", description="출석체크용 명령어입니다.")
     async def attend(self, interaction: discord.Interaction):
         user = interaction.user
         datatime = interaction.created_at.astimezone(tz=tz)
-        dateNow = datatime.strftime('%Y-%m-%d')
-        timeNow = datatime.strftime('%H:%M:%S')
+        datenow = datatime.strftime('%Y-%m-%d')
+        timenow = datatime.strftime('%H:%M:%S')
         idlist = make_userlist('attendance')
         attdatelist = make_attdatelist(user)
-        try:
-            db.deleteDB(schema='public',table='attendance',condition='attdate = \'0000-00-00\'')
-        except:
-            pass
+        db.deleteDB(schema='public',table='attendance',condition='attdate = \'0000-00-00\'')
+
         
         if(user.id not in idlist):
             await interaction.response.send_message(f'출석부에 {user.mention}님이 없어요. \'/유저추가\' 를 이용해 보세요.')
-        elif((user.id in idlist) & (dateNow in attdatelist)):
-            atttime = db.readDB(schema='public',table='attendance',colum='atttime',condition=f'id = {user.id} AND attdate = \'{dateNow}\'')
+        elif((user.id in idlist) & (datenow in attdatelist)):
+            atttime = db.readDB(schema='public',table='attendance',colum='atttime',condition=f'id = {user.id} AND attdate = \'{datenow}\'')
             await interaction.response.send_message(f'오늘은 이미 {atttime[0][0]}에 출석했어요!')
         else:
-            db.insertDB(schema='public',table='attendance',colum=None,data=(f'{user.id}',f'{user.name}',f'{dateNow}',f'{timeNow}'))
-            await interaction.response.send_message(f'{user.mention}님이 '+timeNow+'에 출석했습니다.')
+            db.insertDB(schema='public',table='attendance',colum=None,data=(f'{user.id}',f'{user.name}',f'{datenow}',f'{timenow}'))
+            await interaction.response.send_message(f'{user.mention}님이 '+timenow+'에 출석했습니다.')
 
     @app_commands.command(name="취소", description="출석체크를 잘못했다면 이용해보세요.")
     async def attendcancel(self, interaction: discord.Interaction):
         user = interaction.user
         datatime = interaction.created_at.astimezone(tz=tz)
-        dateNow = datatime.strftime('%Y-%m-%d')
-        atttime = db.readDB(schema='public',table='attendance',colum='atttime',condition=f'id = {user.id} AND attdate = \'{dateNow}\'')
+        datenow = datatime.strftime('%Y-%m-%d')
+        atttime = db.readDB(schema='public',table='attendance',colum='atttime',condition=f'id = {user.id} AND attdate = \'{datenow}\'')
         attdatelist = make_attdatelist(user)
         
-        if(dateNow in attdatelist):
-            db.deleteDB(schema='public',table='attendance',condition=f'id = {user.id} AND attdate = \'{dateNow}\'')
+        if(datenow in attdatelist):
+            db.deleteDB(schema='public',table='attendance',condition=f'id = {user.id} AND attdate = \'{datenow}\'')
             await interaction.response.send_message(f'{user.mention}님 오늘 '+atttime[0][0]+'에 출석한 기록을 지웠어요.')
         else:
             await interaction.response.send_message(f'{user.mention}님 오늘 출석한 기록이 없어요! \'/출석체크\'를 했는지 확인해 보세요.')
 
-class TimeGroup(app_commands.Group):
+    @app_commands.command(name='현황',description='출석 현황을 알려줍니다.')
+    async def attendance(self, interaction: discord.Interaction):
+        user = interaction.user
+        datatime = interaction.created_at.astimezone(tz=tz)
+        attendeddaylist = []
+
+        for i in range(7):
+            date = (datatime - timedelta(days=i)).strftime('%Y-%m-%d')
+            attendedday = db.readDB(schema='public',table='attendance',colum='attdate',condition=f'id = {user.id} AND attdate = \'{date}\'')
+            print(date)
+
+            try:
+                attendeddaylist.append(attendedday[0][0])
+            except IndexError:
+                pass
+
+        attendeddaylist = attendeddaylist[::-1]
+        print(attendeddaylist)
+
+        await interaction.response.send_message(f'{attendeddaylist}')
+
+class TimeGroup(app_commands.Group): # /출석시간
     @app_commands.command(name='등록', description='출석시간을 설정하는 명령어입니다.')    
     async def editTime(self, interaction: discord.Interaction, mon: str, tue: str, wed: str, thu: str, fri: str, sat: str, sun: str):
         user = interaction.user
