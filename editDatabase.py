@@ -85,7 +85,7 @@ class CRUD(Database):
             condition (_type_): 조건을 지정합니다 postsql의 조건문을 이용합니다.
             
         Returns:
-            _type_: 에러가 있는지 출력삽니다
+            _type_: 에러가 있는지 출력합니다
         """
         
         sql = " delete from {schema}.{table} where {condition} ; ".format(schema=schema,table=table,
